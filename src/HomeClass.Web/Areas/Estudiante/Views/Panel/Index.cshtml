@@ -1,0 +1,127 @@
+@model EstudianteDashboardDto
+@{
+    ViewData["Title"] = "Mi balance";
+    var primerNombre = Model.Nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+    var anillo = (int)Math.Max(0, Math.Min(100, Model.Promedio ?? 0));
+    var chartEvolucion = Ui.Json(new
+    {
+        type = "line", max = 100, leyenda = true, labels = Model.Evolucion.Etiquetas,
+        datasets = new object[]
+        {
+            new { label = "Mis notas", data = Model.Evolucion.Mias },
+            new { label = "Promedio del grupo", data = Model.Evolucion.Grupo, color = Ui.Gris, discontinua = true }
+        }
+    });
+    var chartCursos = Ui.Json(new
+    {
+        type = "bar", max = 100, leyenda = true, labels = Model.Cursos.Select(c => c.Codigo),
+        datasets = new object[]
+        {
+            new { label = "Mi promedio", data = Model.Cursos.Select(c => c.MiPromedio) },
+            new { label = "Promedio del grupo", data = Model.Cursos.Select(c => c.PromedioGrupo), color = Ui.Gris }
+        }
+    });
+}
+<section class="panel boletin mb-3">
+    <div class="ring @Ui.ClaseNivel(Model.Nivel)" style="--v:@anillo" role="img" aria-label="Promedio general @Ui.Nota(Model.Promedio)">
+        <div><div class="ring-num">@Ui.Nota(Model.Promedio)</div><div class="ring-lbl">promedio general</div></div>
+    </div>
+    <div style="flex:1;min-width:260px">
+        <h1>Hola, @primerNombre</h1>
+        <p class="muted mb-2">@Model.Carnet, @Model.Carrera, semestre @Model.Semestre</p>
+        <partial name="_Nivel" model="Model.Nivel" />
+        <div class="d-flex flex-wrap gap-4 mt-3">
+            <div><div class="small muted fw-semibold">Asistencia</div><div class="fs-4 fw-bold nota @Ui.ClasePct(Model.Asistencia)">@Ui.Pct(Model.Asistencia)</div></div>
+            <div><div class="small muted fw-semibold">Cursos activos</div><div class="fs-4 fw-bold">@Model.CursosActivos</div></div>
+            <div><div class="small muted fw-semibold">Notas registradas</div><div class="fs-4 fw-bold">@Model.EvaluacionesCalificadas</div></div>
+        </div>
+    </div>
+</section>
+
+@if (Model.Cursos.Count == 0)
+{
+    <div class="panel"><div class="empty"><i class="bi bi-journal-bookmark"></i><strong>Aún no estás matriculado en ningún curso</strong>Cuando tu docente o la administración te matriculen, verás aquí tu avance.</div></div>
+    return;
+}
+
+<div class="grid cols-wide">
+    <section class="panel">
+        <div class="panel-h"><h2>Mis notas frente al grupo</h2></div>
+        <div class="panel-b">
+            @if (Model.Evolucion.Etiquetas.Count == 0) { <div class="empty"><i class="bi bi-graph-up"></i>Aparecerá cuando tengas notas registradas.</div> }
+            else { <div class="chart-box"><canvas data-chart="@chartEvolucion" role="img" aria-label="Evolución de mis notas comparada con el promedio del grupo"></canvas></div> }
+        </div>
+    </section>
+    <section class="panel">
+        <div class="panel-h"><h2>Qué puedes hacer</h2></div>
+        <div class="panel-b">
+            @if (Model.Sugerencias.Count == 0) { <p class="muted mb-0">Cuando tengas notas y asistencia registradas, aquí verás recomendaciones para tu caso.</p> }
+            @foreach (var s in Model.Sugerencias)
+            {
+                <div class="sugerencia @s.Prioridad.ToLowerInvariant()"><strong>@s.Titulo</strong><p>@s.Descripcion</p></div>
+            }
+        </div>
+    </section>
+</div>
+
+<div class="grid cols-2">
+    <section class="panel">
+        <div class="panel-h"><h2>Promedio por curso</h2></div>
+        <div class="panel-b"><div class="chart-box"><canvas data-chart="@chartCursos" role="img" aria-label="Mi promedio por curso comparado con el grupo"></canvas></div></div>
+    </section>
+    <section class="panel">
+        <div class="panel-h"><h2>Próximas evaluaciones</h2></div>
+        @if (Model.Proximas.Count == 0)
+        {
+            <div class="empty"><i class="bi bi-calendar-event"></i>No tienes evaluaciones programadas.</div>
+        }
+        else
+        {
+            <ul class="lista-simple">
+                @foreach (var e in Model.Proximas)
+                {
+                    <li>
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="fecha-bloque"><b>@e.Fecha.Day</b><span>@e.Fecha.ToString("MMM")</span></div>
+                            <div><strong>@e.Titulo</strong><small>@e.Curso, @e.Tipo.Texto(), vale @e.Ponderacion.ToString("0.#")%</small></div>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>
+
+<div class="grid cols-2">
+    <section class="panel">
+        <div class="panel-h"><h2>Últimas calificaciones</h2></div>
+        @if (Model.UltimasNotas.Count == 0)
+        {
+            <div class="empty"><i class="bi bi-journal-check"></i>Aún no hay notas registradas.</div>
+        }
+        else
+        {
+            <ul class="lista-simple">
+                @foreach (var n in Model.UltimasNotas)
+                {
+                    <li>
+                        <div><strong>@n.Titulo</strong><small>@n.Curso, @Ui.Fecha(n.Fecha)</small></div>
+                        <div class="text-end"><span class="nota fs-5 @Ui.ClaseNota(n.Nota)">@Ui.Nota(n.Nota)</span><small>grupo @Ui.Nota(n.PromedioGrupo)</small></div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+    <section class="panel">
+        <div class="panel-h"><h2>Mis cursos</h2><a asp-controller="Cursos" asp-action="Index" class="small">Ver todos</a></div>
+        <ul class="lista-simple">
+            @foreach (var c in Model.Cursos)
+            {
+                <li>
+                    <div><a asp-controller="Cursos" asp-action="Detalle" asp-route-id="@c.CursoId" class="fw-bold text-decoration-none" style="color:var(--ink)">@c.Nombre</a><small>@c.Codigo, @c.Docente</small></div>
+                    <div class="text-end"><span class="nota @Ui.ClaseNota(c.MiPromedio)">@Ui.Nota(c.MiPromedio)</span><small>@Ui.Pct(c.MiAsistencia)</small></div>
+                </li>
+            }
+        </ul>
+    </section>
+</div>

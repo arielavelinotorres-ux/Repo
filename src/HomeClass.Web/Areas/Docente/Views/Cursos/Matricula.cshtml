@@ -1,0 +1,7 @@
+@model MatriculaDto
+@{
+    ViewData["Title"] = "Matrícula";
+    ViewData["Volver"] = Url.Action("Detalle", new { id = Model.CursoId });
+}
+<partial name="_CursoTabs" model='new CursoCabeceraVm(Model.CursoId, Model.Codigo, Model.Nombre, "matricula")' />
+<partial name="_Matricula" model="Model" />

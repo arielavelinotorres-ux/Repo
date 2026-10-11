@@ -1,0 +1,94 @@
+@model IReadOnlyList<UsuarioItemDto>
+@{
+    ViewData["Title"] = "Usuarios";
+    var yoId = ViewBag.YoId as string;
+    var chips = new[] { ("", "Todos", Model.Count), ("Admin", "Administración", Model.Count(u => u.Rol == "Admin")), ("Docente", "Docentes", Model.Count(u => u.Rol == "Docente")), ("Estudiante", "Estudiantes", Model.Count(u => u.Rol == "Estudiante")) };
+}
+<div class="page-head">
+    <div><h1>Usuarios</h1><p>Quién tiene acceso a HomeClass y con qué rol.</p></div>
+    <div class="actions"><a asp-action="Crear" class="btn btn-primary"><i class="bi bi-person-plus"></i> Nueva cuenta</a></div>
+</div>
+
+<div class="panel" data-filtrable>
+    <div class="filtros">
+        <div class="buscador">
+            <i class="bi bi-search"></i>
+            <input type="search" class="form-control" data-buscar placeholder="Buscar por nombre o correo" aria-label="Buscar usuario" />
+        </div>
+        <div class="chips">
+            @foreach (var (valor, texto, n) in chips)
+            {
+                <button type="button" class="chip @(valor == "" ? "on" : "")" data-chip="@valor">@texto<span class="n">@n</span></button>
+            }
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table class="tabla">
+            <thead>
+                <tr><th data-sort="text">Persona</th><th data-sort="text">Rol</th><th>Detalle</th><th data-sort="text">Estado</th><th data-sort="text">Último acceso</th><th class="num">Acciones</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    var esYo = u.Id == yoId;
+                    var msgEstado = u.Activo
+                        ? u.NombreCompleto + " no podrá ingresar hasta que vuelvas a activar su cuenta."
+                        : u.NombreCompleto + " podrá ingresar de nuevo.";
+                    var tituloEstado = u.Activo ? "Desactivar" : "Activar";
+                    <tr data-fila data-texto="@u.NombreCompleto @u.Email" data-grupo="@u.Rol">
+                        <td><div class="celda-persona"><span class="avatar">@Ui.Iniciales(u.NombreCompleto)</span><div><strong>@u.NombreCompleto @(esYo ? "(tú)" : "")</strong><small>@u.Email</small></div></div></td>
+                        <td><span class="tag @u.Rol.ToLowerInvariant()">@u.Rol</span></td>
+                        <td class="muted">@u.Detalle</td>
+                        <td data-valor="@(u.Activo ? "a" : "b")"><span class="estado-dot @(u.Activo ? "" : "off")">@(u.Activo ? "Activa" : "Desactivada")</span></td>
+                        <td class="muted" data-valor="@(u.UltimoAcceso?.ToString("s") ?? "")">@(u.UltimoAcceso.HasValue ? Ui.Fecha(u.UltimoAcceso.Value.ToLocalTime()) : "Nunca")</td>
+                        <td class="num">
+                            <div class="d-inline-flex gap-1">
+                                <a asp-action="Editar" asp-route-id="@u.Id" class="icon-btn" title="Editar" aria-label="Editar a @u.NombreCompleto"><i class="bi bi-pencil"></i></a>
+                                <button type="button" class="icon-btn" title="Restablecer contraseña" aria-label="Restablecer contraseña de @u.NombreCompleto"
+                                        data-bs-toggle="modal" data-bs-target="#resetModal" data-id="@u.Id" data-nombre="@u.NombreCompleto"><i class="bi bi-key"></i></button>
+                                @if (!esYo)
+                                {
+                                    <form asp-action="CambiarEstado" asp-route-id="@u.Id" method="post" class="d-inline"
+                                          data-confirm="@msgEstado"
+                                          data-confirm-titulo="@(tituloEstado + " cuenta")"
+                                          data-confirm-boton="@tituloEstado" data-peligro="@(u.Activo ? "true" : "false")">
+                                        <button type="submit" class="icon-btn" title="@tituloEstado" aria-label="@tituloEstado a @u.NombreCompleto"><i class="bi @(u.Activo ? "bi-toggle-on" : "bi-toggle-off")"></i></button>
+                                    </form>
+                                    <form asp-action="Eliminar" asp-route-id="@u.Id" method="post" class="d-inline"
+                                          data-confirm="Se eliminará la cuenta de @u.NombreCompleto y todos sus datos académicos. Esta acción no se puede deshacer."
+                                          data-confirm-titulo="Eliminar cuenta" data-confirm-boton="Eliminar">
+                                        <button type="submit" class="icon-btn" title="Eliminar" aria-label="Eliminar a @u.NombreCompleto"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="empty" data-vacio hidden><i class="bi bi-search"></i><strong>No hay resultados</strong>Prueba con otro nombre o quita el filtro de rol.</div>
+    <div class="px-3 py-2 small muted border-top"><span data-contador>@Model.Count</span> de @Model.Count cuentas</div>
+</div>
+
+<div class="modal fade" id="resetModal" tabindex="-1" aria-labelledby="resetTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" asp-action="RestablecerPassword">
+            <input type="hidden" name="id" id="reset-id" />
+            <div class="modal-header">
+                <h2 class="modal-title fs-5 fw-bold" id="resetTitulo">Restablecer contraseña</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Define una contraseña temporal para <strong id="reset-nombre"></strong>. Compártela de forma segura; la persona puede cambiarla desde su perfil.</p>
+                <label for="reset-pass" class="form-label">Nueva contraseña</label>
+                <input type="text" class="form-control" id="reset-pass" name="nuevaPassword" minlength="8" required autocomplete="off" />
+                <div class="form-text">Mínimo 8 caracteres, con mayúscula, minúscula y número.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Restablecer</button>
+            </div>
+        </form>
+    </div>
+</div>

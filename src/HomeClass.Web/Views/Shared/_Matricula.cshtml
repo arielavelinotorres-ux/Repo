@@ -1,0 +1,35 @@
+@model MatriculaDto
+<div class="panel" data-matricula>
+    <form method="post" asp-action="Matricula" asp-route-id="@Model.CursoId">
+        <div class="filtros">
+            <div class="buscador">
+                <i class="bi bi-search"></i>
+                <input type="search" class="form-control" data-buscar placeholder="Buscar por nombre o carnet" aria-label="Buscar estudiante" />
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-seleccionar-visibles>Marcar visibles</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-limpiar>Desmarcar visibles</button>
+            <span class="ms-auto fw-semibold"><span data-total>0</span> matriculados</span>
+        </div>
+        <div class="lista-check">
+            @foreach (var e in Model.Estudiantes)
+            {
+                <label class="fila-check" data-texto="@e.Nombre @e.Carnet @e.Carrera">
+                    <input type="checkbox" name="estudianteIds" value="@e.EstudianteId" checked="@e.Inscrito" />
+                    <span class="avatar">@Ui.Iniciales(e.Nombre)</span>
+                    <span><strong>@e.Nombre</strong><small class="d-block muted">@e.Carnet, @e.Carrera</small></span>
+                </label>
+            }
+            @if (!Model.Estudiantes.Any())
+            {
+                <div class="empty"><i class="bi bi-people"></i><strong>Todavía no hay estudiantes registrados</strong>La administración debe crear sus cuentas primero.</div>
+            }
+        </div>
+        <div class="barra-guardar">
+            <span class="small muted"><i class="bi bi-info-circle"></i> Si desmarcas a alguien, también se borran sus notas y asistencias de este curso.</span>
+            <span class="d-flex gap-2">
+                <a href="@ViewData["Volver"]" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar matrícula</button>
+            </span>
+        </div>
+    </form>
+</div>

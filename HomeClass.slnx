@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HomeClass.Domain/HomeClass.Domain.csproj" />
+    <Project Path="src/HomeClass.Application/HomeClass.Application.csproj" />
+    <Project Path="src/HomeClass.Infrastructure/HomeClass.Infrastructure.csproj" />
+    <Project Path="src/HomeClass.Web/HomeClass.Web.csproj" />
+  </Folder>
+</Solution>

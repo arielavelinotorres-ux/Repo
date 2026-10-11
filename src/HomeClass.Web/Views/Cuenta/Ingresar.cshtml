@@ -1,0 +1,58 @@
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Configuration
+@model LoginForm
+@inject IWebHostEnvironment Env
+@inject IConfiguration Config
+@{ ViewData["Title"] = "Ingresar"; }
+<div class="auth">
+    <div class="auth-lado cuadricula">
+        <a class="brand" asp-controller="Home" asp-action="Index" style="padding:0">
+            <span class="brand-mark"><i class="bi bi-house-heart-fill"></i></span>
+            <span><span class="brand-name">HomeClass</span><br /><span class="brand-sub">Entorno Académico</span></span>
+        </a>
+        <div>
+            <h1>Tu clase, siempre a la mano.</h1>
+            <p style="color:var(--tiza-dim);max-width:44ch">Entra con la cuenta que te dio la administración. Verás solo lo que corresponde a tu rol.</p>
+        </div>
+        <span class="brand-sub">Si olvidaste tu contraseña, pide a la administración que la restablezca.</span>
+    </div>
+    <div class="auth-form">
+        <div class="caja">
+            <h2 class="display fw-bold mb-1" style="font-size:1.8rem">Ingresar</h2>
+            <p class="muted mb-4">Usa tu correo institucional.</p>
+
+            <form method="post" asp-action="Ingresar" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control form-control-lg" autocomplete="username" autofocus />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="Password" class="form-control form-control-lg" autocomplete="current-password" />
+                        <button type="button" class="btn btn-outline-secondary" data-toggle-password="#Password" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <div class="form-check mb-4">
+                    <input asp-for="Recordarme" class="form-check-input" />
+                    <label asp-for="Recordarme" class="form-check-label">Mantener la sesión iniciada</label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100">Ingresar</button>
+            </form>
+
+            @if (Env.IsDevelopment())
+            {
+                <div class="demo-cuentas">
+                    <span class="small muted">Cuentas de demostración (solo en desarrollo). Toca una para rellenar el formulario.</span>
+                    <button type="button" data-demo-email="@Config["Seed:AdminEmail"]" data-demo-pass="@Config["Seed:AdminPassword"]"><i class="bi bi-building"></i><span>Administración<small>@Config["Seed:AdminEmail"]</small></span></button>
+                    <button type="button" data-demo-email="docente@homeclass.edu" data-demo-pass="@Config["Seed:DocentePassword"]"><i class="bi bi-easel"></i><span>Docente<small>docente@homeclass.edu</small></span></button>
+                    <button type="button" data-demo-email="estudiante@homeclass.edu" data-demo-pass="@Config["Seed:EstudiantePassword"]"><i class="bi bi-mortarboard"></i><span>Estudiante<small>estudiante@homeclass.edu</small></span></button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

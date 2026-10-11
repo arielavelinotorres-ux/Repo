@@ -1,0 +1,120 @@
+@model AdminDashboardDto
+@{
+    ViewData["Title"] = "Resumen institucional";
+    var r = Model.Riesgo;
+    var chartRiesgo = Ui.Json(new { type = "doughnut", labels = Ui.EtiquetasRiesgo, datasets = new[] { new { data = Ui.ValoresRiesgo(r), colors = Ui.ColoresRiesgo } } });
+    var chartRangos = Ui.Json(new { type = "bar", labels = Ui.EtiquetasRangos, datasets = new[] { new { label = "Estudiantes", data = Model.DistribucionNotas, colors = Ui.ColoresRangos } } });
+    var chartCursos = Ui.Json(new { type = "bar", max = 100, labels = Model.Cursos.Select(c => c.Codigo), datasets = new[] { new { label = "Promedio", data = Model.Cursos.Select(c => c.Promedio) } } });
+}
+<div class="page-head">
+    <div>
+        <h1>Resumen institucional</h1>
+        <p>Cómo va HomeClass hoy: personas, cursos y rendimiento.</p>
+    </div>
+    <div class="actions">
+        <a asp-controller="Usuarios" asp-action="Crear" class="btn btn-primary"><i class="bi bi-person-plus"></i> Nueva cuenta</a>
+        <a asp-controller="Cursos" asp-action="Crear" class="btn btn-outline-secondary"><i class="bi bi-journal-plus"></i> Nuevo curso</a>
+    </div>
+</div>
+
+<div class="stat-strip">
+    <partial name="_Stat" model='new StatVm("Cuentas", Model.TotalUsuarios.ToString(), "bi-people", "neutro", Model.UsuariosActivos + " activas, " + Model.UsuariosInactivos + " inactivas")' />
+    <partial name="_Stat" model='new StatVm("Docentes", Model.TotalDocentes.ToString(), "bi-easel")' />
+    <partial name="_Stat" model='new StatVm("Estudiantes", Model.TotalEstudiantes.ToString(), "bi-mortarboard")' />
+    <partial name="_Stat" model='new StatVm("Cursos", Model.TotalCursos.ToString(), "bi-journal-bookmark", "neutro", Model.TotalMatriculas + " matrículas")' />
+    <partial name="_Stat" model='new StatVm("Promedio general", Ui.Nota(Model.PromedioInstitucional), "bi-graph-up", Ui.ClaseNota(Model.PromedioInstitucional))' />
+    <partial name="_Stat" model='new StatVm("Asistencia", Ui.Pct(Model.AsistenciaInstitucional).Replace(" ", ""), "bi-calendar-check", Ui.ClasePct(Model.AsistenciaInstitucional))' />
+</div>
+
+<div class="grid cols-3">
+    <section class="panel">
+        <div class="panel-h"><h2>Riesgo académico</h2><a asp-controller="Riesgo" asp-action="Index" class="small">Ver detalle</a></div>
+        <div class="panel-b">
+            @if (r.Total == 0) { <div class="empty"><i class="bi bi-inbox"></i>Aún no hay estudiantes matriculados.</div> }
+            else { <div class="chart-box"><canvas data-chart="@chartRiesgo" role="img" aria-label="Estudiantes por nivel de riesgo"></canvas></div> }
+        </div>
+    </section>
+    <section class="panel">
+        <div class="panel-h"><h2>Estudiantes por promedio</h2></div>
+        <div class="panel-b"><div class="chart-box"><canvas data-chart="@chartRangos" role="img" aria-label="Estudiantes por rango de promedio"></canvas></div></div>
+    </section>
+    <section class="panel">
+        <div class="panel-h"><h2>Promedio por curso</h2></div>
+        <div class="panel-b"><div class="chart-box"><canvas data-chart="@chartCursos" role="img" aria-label="Promedio por curso"></canvas></div></div>
+    </section>
+</div>
+
+<div class="grid cols-wide">
+    <section class="panel">
+        <div class="panel-h"><h2>Estudiantes que necesitan atención ahora</h2><a asp-controller="Riesgo" asp-action="Index" class="small">Ver todos</a></div>
+        @if (Model.AlumnosCriticos.Count == 0)
+        {
+            <div class="empty"><i class="bi bi-emoji-smile"></i><strong>Nadie en riesgo alto</strong>Buen momento para reconocer a los grupos que mejoran.</div>
+        }
+        else
+        {
+            <ul class="lista-simple">
+                @foreach (var a in Model.AlumnosCriticos)
+                {
+                    <li>
+                        <div class="celda-persona"><span class="avatar">@Ui.Iniciales(a.Nombre)</span><div><strong>@a.Nombre</strong><small>@a.Carnet, @a.Cursos</small></div></div>
+                        <div class="text-end"><span class="nota @Ui.ClaseNota(a.Promedio)">@Ui.Nota(a.Promedio)</span><small>asistencia @Ui.Pct(a.Asistencia)</small></div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+    <section class="panel">
+        <div class="panel-h"><h2>Cuentas recientes</h2><a asp-controller="Usuarios" asp-action="Index" class="small">Gestionar</a></div>
+        <ul class="lista-simple">
+            @foreach (var u in Model.UltimosUsuarios)
+            {
+                <li>
+                    <div class="celda-persona"><span class="avatar">@Ui.Iniciales(u.NombreCompleto)</span><div><strong>@u.NombreCompleto</strong><small>@u.Email</small></div></div>
+                    <span class="tag @u.Rol.ToLowerInvariant()">@u.Rol</span>
+                </li>
+            }
+        </ul>
+    </section>
+</div>
+
+<div class="grid cols-2">
+    <section class="panel">
+        <div class="panel-h"><h2>Rendimiento por curso</h2></div>
+        <div class="table-wrap">
+            <table class="tabla">
+                <thead><tr><th>Curso</th><th class="num">Estudiantes</th><th class="num">Promedio</th><th class="num">Asistencia</th></tr></thead>
+                <tbody>
+                    @foreach (var c in Model.Cursos)
+                    {
+                        <tr>
+                            <td><strong>@c.Nombre</strong><small class="d-block muted">@c.Codigo, @c.Docente</small></td>
+                            <td class="num">@c.Estudiantes</td>
+                            <td class="num"><span class="nota @Ui.ClaseNota(c.Promedio)">@Ui.Nota(c.Promedio)</span></td>
+                            <td class="num"><span class="nota @Ui.ClasePct(c.Asistencia)">@Ui.Pct(c.Asistencia)</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="panel-h"><h2>Carga docente</h2></div>
+        <div class="table-wrap">
+            <table class="tabla">
+                <thead><tr><th>Docente</th><th class="num">Cursos</th><th class="num">Estudiantes</th><th class="num">Promedio</th></tr></thead>
+                <tbody>
+                    @foreach (var d in Model.Docentes)
+                    {
+                        <tr>
+                            <td><strong>@d.Nombre</strong><small class="d-block muted">@d.Especialidad</small></td>
+                            <td class="num">@d.Cursos</td>
+                            <td class="num">@d.Estudiantes</td>
+                            <td class="num"><span class="nota @Ui.ClaseNota(d.Promedio)">@Ui.Nota(d.Promedio)</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

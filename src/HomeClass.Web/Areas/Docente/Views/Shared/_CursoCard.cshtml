@@ -1,0 +1,19 @@
+@model CursoResumenDto
+<article class="curso-card" style="--tono:@Ui.TonoColor(Model.Promedio)">
+    <div>
+        <span class="codigo">@Model.Codigo @(Model.Activo ? "" : "(inactivo)")</span>
+        <h3><a asp-controller="Cursos" asp-action="Detalle" asp-route-id="@Model.Id" class="text-decoration-none" style="color:var(--ink)">@Model.Nombre</a></h3>
+    </div>
+    <dl>
+        <div><dt>Estudiantes</dt><dd>@Model.Estudiantes</dd></div>
+        <div><dt>Evaluaciones</dt><dd>@Model.Evaluaciones</dd></div>
+        <div><dt>Promedio</dt><dd class="nota @Ui.ClaseNota(Model.Promedio)">@Ui.Nota(Model.Promedio)</dd></div>
+        <div><dt>Asistencia</dt><dd class="nota @Ui.ClasePct(Model.Asistencia)">@Ui.Pct(Model.Asistencia)</dd></div>
+    </dl>
+    <div class="barra" title="Promedio del curso"><span class="@Ui.ClaseNota(Model.Promedio)" style="width:@((int)(Model.Promedio ?? 0))%"></span></div>
+    <div class="acciones">
+        <a asp-controller="Cursos" asp-action="Calificaciones" asp-route-id="@Model.Id" class="btn btn-primary btn-sm"><i class="bi bi-journal-check"></i> Calificar</a>
+        <a asp-controller="Cursos" asp-action="Asistencia" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-calendar-check"></i> Pasar lista</a>
+        <a asp-controller="Cursos" asp-action="Detalle" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">Estudiantes</a>
+    </div>
+</article>

@@ -1,0 +1,14 @@
+@model ErrorViewModel
+@{ ViewData["Title"] = "Algo salió mal"; }
+<div class="@(User.Identity?.IsAuthenticated == true ? "" : "container py-5")">
+    <div class="panel"><div class="empty">
+        <i class="bi bi-bug"></i>
+        <strong>Algo salió mal de nuestro lado</strong>
+        Intenta de nuevo en unos momentos. Si el problema continúa, avisa a la administración.
+        @if (Model.MostrarRequestId)
+        {
+            <div class="small mt-2">Código de referencia: <code>@Model.RequestId</code></div>
+        }
+        <div class="mt-3"><a class="btn btn-primary" asp-area="" asp-controller="Home" asp-action="Index">Volver al inicio</a></div>
+    </div></div>
+</div>

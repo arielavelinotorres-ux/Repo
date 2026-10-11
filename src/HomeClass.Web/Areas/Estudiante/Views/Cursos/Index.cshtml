@@ -1,0 +1,16 @@
+@model IReadOnlyList<CursoEstudianteDto>
+@{ ViewData["Title"] = "Mis cursos"; }
+<div class="page-head"><div><h1>Mis cursos</h1><p>Tu promedio y asistencia en cada materia, comparados con el grupo.</p></div></div>
+@if (Model.Count == 0)
+{
+    <div class="panel"><div class="empty"><i class="bi bi-journal-bookmark"></i><strong>Aún no estás matriculado en ningún curso</strong>Cuando te matriculen, aparecerán aquí.</div></div>
+}
+else
+{
+    <div class="cursos-grid">
+        @foreach (var c in Model)
+        {
+            <partial name="_CursoCardEst" model="c" />
+        }
+    </div>
+}

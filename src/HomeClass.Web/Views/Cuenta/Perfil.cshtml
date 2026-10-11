@@ -1,0 +1,83 @@
+@model PerfilPageVm
+@{
+    ViewData["Title"] = "Mi perfil";
+    var p = Model.Perfil;
+    var esDocente = p.Rol == "Docente";
+    var esEstudiante = p.Rol == "Estudiante";
+}
+<div class="page-head">
+    <div class="d-flex align-items-center gap-3">
+        <span class="avatar lg">@Ui.Iniciales(p.NombreCompleto)</span>
+        <div>
+            <h1>@p.NombreCompleto</h1>
+            <p><span class="tag @p.Rol.ToLowerInvariant()">@p.Rol</span> @p.Email, miembro desde @Ui.Fecha(p.FechaCreacion.ToLocalTime())</p>
+        </div>
+    </div>
+</div>
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="grid cols-2">
+    <section class="panel">
+        <div class="panel-h"><h2>Mis datos</h2></div>
+        <div class="panel-b">
+            <form method="post" asp-action="Perfil" novalidate>
+                <div class="mb-3">
+                    <label asp-for="Datos.NombreCompleto" class="form-label"></label>
+                    <input asp-for="Datos.NombreCompleto" class="form-control" />
+                    <span asp-validation-for="Datos.NombreCompleto" class="text-danger"></span>
+                </div>
+                @if (esDocente)
+                {
+                    <div class="mb-3">
+                        <label asp-for="Datos.Especialidad" class="form-label"></label>
+                        <input asp-for="Datos.Especialidad" class="form-control" />
+                    </div>
+                }
+                @if (esEstudiante)
+                {
+                    <div class="mb-3">
+                        <label asp-for="Datos.Telefono" class="form-label"></label>
+                        <input asp-for="Datos.Telefono" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Datos.ContactoEmergencia" class="form-label"></label>
+                        <input asp-for="Datos.ContactoEmergencia" class="form-control" />
+                    </div>
+                    <dl class="row small mb-3">
+                        <dt class="col-4 muted">Carnet</dt><dd class="col-8">@p.Carnet</dd>
+                        <dt class="col-4 muted">Carrera</dt><dd class="col-8">@p.Carrera</dd>
+                        <dt class="col-4 muted">Semestre</dt><dd class="col-8">@p.Semestre</dd>
+                    </dl>
+                    <p class="small muted">El carnet, la carrera y el semestre los actualiza la administración.</p>
+                }
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-h"><h2>Cambiar contraseña</h2></div>
+        <div class="panel-b">
+            <form method="post" asp-action="CambiarPassword" novalidate>
+                <div class="mb-3">
+                    <label asp-for="Password.Actual" class="form-label"></label>
+                    <input asp-for="Password.Actual" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Password.Actual" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password.Nueva" class="form-label"></label>
+                    <input asp-for="Password.Nueva" class="form-control" autocomplete="new-password" />
+                    <div class="form-text">Mínimo 8 caracteres, con mayúscula, minúscula y número.</div>
+                    <span asp-validation-for="Password.Nueva" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password.Confirmar" class="form-label"></label>
+                    <input asp-for="Password.Confirmar" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Password.Confirmar" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Actualizar contraseña</button>
+            </form>
+        </div>
+    </section>
+</div>

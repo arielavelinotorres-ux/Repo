@@ -1,0 +1,75 @@
+@model ReporteRiesgoDto
+@{
+    var d = Model.Distribucion;
+    var chips = new[] { ("", "Todos", Model.Alumnos.Count), ("alto", "Riesgo alto", d.Alto), ("moderado", "Moderado", d.Moderado), ("bajo", "En buen camino", d.Bajo) };
+}
+<div class="stat-strip" style="--cols:4">
+    <partial name="_Stat" model='new StatVm("Riesgo alto", d.Alto.ToString(), "bi-exclamation-octagon", d.Alto > 0 ? "mal" : "bien", "Promedio bajo 70 o asistencia bajo 75%")' />
+    <partial name="_Stat" model='new StatVm("Riesgo moderado", d.Moderado.ToString(), "bi-exclamation-triangle", d.Moderado > 0 ? "medio" : "bien", "Promedio bajo 80 o asistencia bajo 85%")' />
+    <partial name="_Stat" model='new StatVm("En buen camino", d.Bajo.ToString(), "bi-check-circle", "bien")' />
+    <partial name="_Stat" model='new StatVm("Estudiantes evaluados", Model.Alumnos.Count.ToString(), "bi-people")' />
+</div>
+
+<div class="panel" data-filtrable>
+    <div class="filtros">
+        <div class="buscador">
+            <i class="bi bi-search"></i>
+            <input type="search" class="form-control" data-buscar placeholder="Buscar estudiante, carnet o curso" aria-label="Buscar" />
+        </div>
+        <div class="chips">
+            @foreach (var (valor, texto, n) in chips)
+            {
+                <button type="button" class="chip @(valor == "" ? "on" : "")" data-chip="@valor">@texto<span class="n">@n</span></button>
+            }
+        </div>
+        <a asp-action="Exportar" class="btn btn-outline-secondary btn-sm ms-auto"><i class="bi bi-download"></i> Exportar CSV</a>
+    </div>
+    <div class="table-wrap">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th data-sort="text">Estudiante</th>
+                    <th>Cursos</th>
+                    <th class="num" data-sort="num">Promedio</th>
+                    <th class="num" data-sort="num">Asistencia</th>
+                    <th>Nivel</th>
+                    <th>Qué hacer</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model.Alumnos)
+                {
+                    var grupo = a.Nivel switch { NivelRiesgo.Alto => "alto", NivelRiesgo.Moderado => "moderado", NivelRiesgo.Bajo => "bajo", _ => "sin" };
+                    <tr data-fila data-texto="@a.Nombre @a.Carnet @a.Cursos" data-grupo="@grupo">
+                        <td>
+                            <div class="celda-persona"><span class="avatar">@Ui.Iniciales(a.Nombre)</span><div><strong>@a.Nombre</strong><small>@a.Carnet</small></div></div>
+                        </td>
+                        <td>@a.Cursos</td>
+                        <td class="num" data-valor="@(a.Promedio ?? -1)"><span class="nota @Ui.ClaseNota(a.Promedio)">@Ui.Nota(a.Promedio)</span></td>
+                        <td class="num" data-valor="@(a.Asistencia ?? -1)"><span class="nota @Ui.ClasePct(a.Asistencia)">@Ui.Pct(a.Asistencia)</span></td>
+                        <td><partial name="_Nivel" model="a.Nivel" /></td>
+                        <td style="min-width:260px">
+                            @if (a.Sugerencias.Count == 0)
+                            {
+                                <span class="muted">Sin datos suficientes</span>
+                            }
+                            else
+                            {
+                                <details>
+                                    <summary class="fw-semibold" style="cursor:pointer">@(a.Sugerencias[0].Titulo + (a.Sugerencias.Count > 1 ? " y " + (a.Sugerencias.Count - 1) + " más" : ""))</summary>
+                                    <div class="mt-2">
+                                        @foreach (var s in a.Sugerencias)
+                                        {
+                                            <div class="sugerencia @s.Prioridad.ToLowerInvariant()"><strong>@s.Titulo</strong><p>@s.Descripcion</p></div>
+                                        }
+                                    </div>
+                                </details>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="empty" data-vacio hidden><i class="bi bi-search"></i><strong>No hay resultados</strong>Prueba con otro nombre o quita el filtro de nivel.</div>
+</div>

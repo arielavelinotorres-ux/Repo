@@ -1,0 +1,9 @@
+@model StatVm
+<div class="stat">
+    <div class="stat-label"><i class="bi @Model.Icono"></i>@Model.Titulo</div>
+    <div class="stat-value tone-@Model.Tono">@Model.Valor</div>
+    @if (!string.IsNullOrEmpty(Model.Detalle))
+    {
+        <div class="stat-detail">@Model.Detalle</div>
+    }
+</div>

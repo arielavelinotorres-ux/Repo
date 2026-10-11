@@ -1,0 +1,9 @@
+@model MatriculaDto
+@{
+    ViewData["Title"] = "Matrícula";
+    ViewData["Volver"] = Url.Action("Index");
+}
+<div class="page-head">
+    <div><a asp-action="Index" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Cursos</a><h1>Matrícula de @Model.Nombre</h1><p>@Model.Codigo. Marca quién cursa esta materia.</p></div>
+</div>
+<partial name="_Matricula" model="Model" />

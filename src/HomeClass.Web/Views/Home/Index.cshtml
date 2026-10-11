@@ -1,0 +1,49 @@
+@{ ViewData["Title"] = "Inicio"; }
+<div class="cuadricula">
+    <div class="publico-nav">
+        <a class="brand" asp-controller="Home" asp-action="Index" style="padding:0">
+            <span class="brand-mark"><i class="bi bi-house-heart-fill"></i></span>
+            <span><span class="brand-name">HomeClass</span><br /><span class="brand-sub">Entorno Académico</span></span>
+        </a>
+        <a asp-controller="Cuenta" asp-action="Ingresar" class="btn btn-tiza">Ingresar</a>
+    </div>
+    <section class="hero">
+        <h1>Cada clase, a un vistazo.</h1>
+        <p>HomeClass reúne cursos, calificaciones y asistencia en un solo lugar. Cada persona entra a un panel hecho para lo que necesita ver y hacer.</p>
+        <a asp-controller="Cuenta" asp-action="Ingresar" class="btn btn-tiza btn-lg">Ingresar a mi panel</a>
+    </section>
+</div>
+
+<section class="roles-grid">
+    <article class="rol-bloque">
+        <span class="rol-icono" style="background:var(--azul)"><i class="bi bi-building"></i></span>
+        <h2>Administración</h2>
+        <p class="muted mb-0">Ve el estado de toda la institución y gestiona quién tiene acceso.</p>
+        <ul>
+            <li>Balance institucional de notas y asistencia</li>
+            <li>Cuentas de docentes y estudiantes</li>
+            <li>Cursos, matrículas y reporte de riesgo</li>
+        </ul>
+    </article>
+    <article class="rol-bloque">
+        <span class="rol-icono" style="background:var(--verde)"><i class="bi bi-easel"></i></span>
+        <h2>Docentes</h2>
+        <p class="muted mb-0">Califica y pasa lista sin salir del curso, y detecta a tiempo a quien necesita apoyo.</p>
+        <ul>
+            <li>Libro de calificaciones con promedio en vivo</li>
+            <li>Asistencia por sesión en un clic</li>
+            <li>Alertas con sugerencias de intervención</li>
+        </ul>
+    </article>
+    <article class="rol-bloque">
+        <span class="rol-icono" style="background:#d97706"><i class="bi bi-mortarboard"></i></span>
+        <h2>Estudiantes</h2>
+        <p class="muted mb-0">Consulta cómo vas en cada curso, cuándo es tu próxima evaluación y qué puedes mejorar.</p>
+        <ul>
+            <li>Tu promedio y asistencia al día</li>
+            <li>Notas comparadas con el promedio del grupo</li>
+            <li>Recomendaciones para mantener el ritmo</li>
+        </ul>
+    </article>
+</section>
+<footer class="text-center muted small pb-4">© @DateTime.Today.Year HomeClass, Entorno Académico</footer>

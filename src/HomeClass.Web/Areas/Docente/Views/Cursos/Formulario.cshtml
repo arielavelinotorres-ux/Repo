@@ -1,0 +1,9 @@
+@model CursoForm
+@{
+    ViewData["Title"] = Model.Id.HasValue ? "Editar curso" : "Nuevo curso";
+    ViewData["Volver"] = Url.Action("Index");
+}
+<div class="page-head">
+    <div><a asp-action="Index" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Mis cursos</a><h1>@ViewData["Title"]</h1></div>
+</div>
+<partial name="_CursoFormulario" model="Model" />

@@ -1,0 +1,90 @@
+@model UsuarioForm
+@{
+    var editando = !string.IsNullOrEmpty(Model.Id);
+    var accion = editando ? "Editar" : "Crear";
+    ViewData["Title"] = editando ? "Editar cuenta" : "Nueva cuenta";
+    var roles = new[] { ("Estudiante", "bi-mortarboard", "Ve sus cursos, notas y asistencia."), ("Docente", "bi-easel", "Califica, pasa lista y da seguimiento."), ("Admin", "bi-building", "Gestiona cuentas, cursos y reportes.") };
+}
+<div class="page-head">
+    <div>
+        <a asp-action="Index" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Usuarios</a>
+        <h1>@ViewData["Title"]</h1>
+    </div>
+</div>
+
+<div class="panel form-panel">
+    <div class="panel-b">
+        <form method="post" asp-action="@accion" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            @if (editando)
+            {
+                <input type="hidden" asp-for="Rol" />
+                <p class="mb-3">Rol: <span class="tag @Model.Rol.ToLowerInvariant()">@Model.Rol</span> <span class="small muted">(el rol no se puede cambiar; crea una cuenta nueva si hace falta)</span></p>
+            }
+            else
+            {
+                <label class="form-label">Rol de la cuenta</label>
+                <div class="opciones-rol mb-3">
+                    @foreach (var (valor, icono, texto) in roles)
+                    {
+                        <div class="opcion-rol">
+                            <input type="radio" name="Rol" id="rol-@valor" value="@valor" checked="@(Model.Rol == valor)" />
+                            <label for="rol-@valor"><strong><i class="bi @icono"></i>@(valor == "Admin" ? "Administración" : valor)</strong><small>@texto</small></label>
+                        </div>
+                    }
+                </div>
+                <span asp-validation-for="Rol" class="text-danger"></span>
+            }
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="NombreCompleto" class="form-label"></label>
+                    <input asp-for="NombreCompleto" class="form-control" maxlength="150" />
+                    <span asp-validation-for="NombreCompleto" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" type="email" autocomplete="off" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                @if (!editando)
+                {
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label"></label>
+                        <div class="input-group">
+                            <input asp-for="Password" class="form-control" type="password" autocomplete="new-password" />
+                            <button type="button" class="btn btn-outline-secondary" data-toggle-password="#Password" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <div class="form-text">Mínimo 8 caracteres, con mayúscula, minúscula y número.</div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                }
+            </div>
+
+            <div class="seccion-form" data-solo-rol="Docente" hidden="@(Model.Rol != "Docente")">
+                <h3>Datos del docente</h3>
+                <label asp-for="Especialidad" class="form-label"></label>
+                <input asp-for="Especialidad" class="form-control" placeholder="Redes y Telecomunicaciones" />
+            </div>
+
+            <div class="seccion-form" data-solo-rol="Estudiante" hidden="@(Model.Rol != "Estudiante")">
+                <h3>Datos del estudiante</h3>
+                <div class="row g-3">
+                    <div class="col-md-4"><label asp-for="Carnet" class="form-label">Carnet</label><input asp-for="Carnet" class="form-control" placeholder="EST-2026-015" /></div>
+                    <div class="col-md-6"><label asp-for="Carrera" class="form-label">Carrera</label><input asp-for="Carrera" class="form-control" placeholder="Ingeniería en Sistemas" /></div>
+                    <div class="col-md-2"><label asp-for="Semestre" class="form-label">Semestre</label><input asp-for="Semestre" class="form-control" type="number" min="1" max="12" /><span asp-validation-for="Semestre" class="text-danger"></span></div>
+                    <div class="col-md-4"><label asp-for="Telefono" class="form-label"></label><input asp-for="Telefono" class="form-control" /></div>
+                    <div class="col-md-4"><label asp-for="FechaNacimiento" class="form-label"></label><input asp-for="FechaNacimiento" class="form-control" type="date" /></div>
+                    <div class="col-md-4"><label asp-for="ContactoEmergencia" class="form-label"></label><input asp-for="ContactoEmergencia" class="form-control" /></div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">@(editando ? "Guardar cambios" : "Crear cuenta")</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>

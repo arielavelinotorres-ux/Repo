@@ -1,0 +1,51 @@
+@model CursoForm
+@{
+    var docentes = ViewBag.Docentes as IReadOnlyList<OpcionDto>;
+    var editando = Model.Id.HasValue;
+    var accion = editando ? "Editar" : "Crear";
+}
+<div class="panel form-panel">
+    <div class="panel-b">
+        <form method="post" asp-action="@accion" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="row g-3">
+                <div class="col-sm-4">
+                    <label asp-for="Codigo" class="form-label"></label>
+                    <input asp-for="Codigo" class="form-control" placeholder="RED-301" maxlength="20" />
+                    <span asp-validation-for="Codigo" class="text-danger"></span>
+                </div>
+                <div class="col-sm-8">
+                    <label asp-for="Nombre" class="form-label"></label>
+                    <input asp-for="Nombre" class="form-control" placeholder="Redes de Computadoras" maxlength="150" />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Descripcion" class="form-label"></label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3" maxlength="500" placeholder="¿De qué trata el curso?"></textarea>
+                    <span asp-validation-for="Descripcion" class="text-danger"></span>
+                </div>
+                @if (docentes is not null)
+                {
+                    <div class="col-12">
+                        <label asp-for="DocenteId" class="form-label"></label>
+                        <select asp-for="DocenteId" class="form-select" asp-items="@(new SelectList(docentes, "Id", "Texto", Model.DocenteId))">
+                            <option value="">Selecciona un docente</option>
+                        </select>
+                        <span asp-validation-for="DocenteId" class="text-danger"></span>
+                    </div>
+                }
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input asp-for="Activo" class="form-check-input" role="switch" />
+                        <label asp-for="Activo" class="form-check-label">Curso activo</label>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">@(editando ? "Guardar cambios" : "Crear curso")</button>
+                <a href="@ViewData["Volver"]" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>

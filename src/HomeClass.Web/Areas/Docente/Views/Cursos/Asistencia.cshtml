@@ -1,0 +1,83 @@
+@model SesionAsistenciaDto
+@{
+    ViewData["Title"] = "Asistencia";
+    var estados = new[] { EstadoAsistencia.Presente, EstadoAsistencia.Tardanza, EstadoAsistencia.Justificada, EstadoAsistencia.Ausente };
+}
+<partial name="_CursoTabs" model='new CursoCabeceraVm(Model.CursoId, Model.Codigo, Model.Nombre, "asistencia")' />
+
+<div class="d-flex flex-wrap align-items-end gap-3 mb-3">
+    <form method="get" asp-action="Asistencia" asp-route-id="@Model.CursoId" class="d-flex align-items-end gap-2">
+        <div>
+            <label class="form-label" for="fecha">Fecha de la clase</label>
+            <input type="date" class="form-control" id="fecha" name="fecha" value="@Ui.InputFecha(Model.Fecha)" max="@Ui.InputFecha(DateTime.Today)" />
+        </div>
+        <button type="submit" class="btn btn-outline-secondary">Ir</button>
+    </form>
+    @if (Model.UltimasSesiones.Count > 0)
+    {
+        <div>
+            <div class="form-label">Sesiones recientes</div>
+            <div class="chips">
+                @foreach (var s in Model.UltimasSesiones)
+                {
+                    <a class="chip text-decoration-none @(s.Date == Model.Fecha.Date ? "on" : "")" asp-action="Asistencia" asp-route-id="@Model.CursoId" asp-route-fecha="@Ui.InputFecha(s)">@Ui.FechaCorta(s)</a>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.Alumnos.Count == 0)
+{
+    <div class="panel"><div class="empty"><i class="bi bi-people"></i><strong>Aún no hay estudiantes en este curso</strong>Matricúlalos para poder pasar lista.
+        <div class="mt-3"><a asp-action="Matricula" asp-route-id="@Model.CursoId" class="btn btn-primary">Matricular estudiantes</a></div></div></div>
+}
+else
+{
+    <div class="panel" data-asistencia>
+        <form method="post" asp-action="Asistencia" asp-route-id="@Model.CursoId">
+            <input type="hidden" name="fecha" value="@Ui.InputFecha(Model.Fecha)" />
+            <div class="filtros">
+                <strong>@Model.Fecha.ToString("dddd d 'de' MMMM")</strong>
+                @if (!Model.YaRegistrada) { <span class="tag">Sin registrar: todos aparecen presentes, ajusta las excepciones</span> }
+                <span class="ms-auto d-flex flex-wrap gap-1">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-marcar-todos="1">Todos presentes</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-marcar-todos="4">Todos ausentes</button>
+                </span>
+            </div>
+            <div class="table-wrap">
+                <table class="tabla">
+                    <thead><tr><th>Estudiante</th><th>Asistencia</th><th class="num">En el curso</th></tr></thead>
+                    <tbody>
+                        @foreach (var a in Model.Alumnos)
+                        {
+                            var actual = a.Estado ?? EstadoAsistencia.Presente;
+                            <tr>
+                                <td><div class="celda-persona"><span class="avatar">@Ui.Iniciales(a.Nombre)</span><div><strong>@a.Nombre</strong><small>@a.Carnet</small></div></div></td>
+                                <td>
+                                    <div class="seg" role="radiogroup" aria-label="Asistencia de @a.Nombre">
+                                        @foreach (var st in estados)
+                                        {
+                                            <input type="radio" name="estados[@a.EstudianteId]" id="as-@a.EstudianteId-@((int)st)" value="@((int)st)" checked="@(actual == st)" />
+                                            <label class="@Ui.ClaseAsistencia(st)" for="as-@a.EstudianteId-@((int)st)">@st.Texto()</label>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="num"><span class="nota @Ui.ClasePct(a.PorcentajeCurso)">@Ui.Pct(a.PorcentajeCurso)</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="barra-guardar">
+                <div class="contador-as">
+                    <span><span class="as-pill as-presente">Presentes</span> <span data-cuenta="1">0</span></span>
+                    <span><span class="as-pill as-tardanza">Tardanzas</span> <span data-cuenta="2">0</span></span>
+                    <span><span class="as-pill as-justificada">Justificadas</span> <span data-cuenta="3">0</span></span>
+                    <span><span class="as-pill as-ausente">Ausentes</span> <span data-cuenta="4">0</span></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar asistencia</button>
+            </div>
+        </form>
+    </div>
+}

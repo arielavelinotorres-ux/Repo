@@ -1,0 +1,93 @@
+@model CursoEstudianteDetalleDto
+@{
+    var r = Model.Resumen;
+    ViewData["Title"] = r.Nombre;
+    var asistidas = Model.Asistencias.Count(a => a.Estado != EstadoAsistencia.Ausente);
+}
+<div class="page-head">
+    <div>
+        <a asp-action="Index" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Mis cursos</a>
+        <h1>@r.Nombre</h1>
+        <p>@r.Codigo, docente @r.Docente</p>
+    </div>
+    <partial name="_Nivel" model="r.Nivel" />
+</div>
+@if (!string.IsNullOrWhiteSpace(Model.Descripcion))
+{
+    <p class="muted mb-3" style="max-width:70ch">@Model.Descripcion</p>
+}
+
+<div class="stat-strip" style="--cols:4">
+    <partial name="_Stat" model='new StatVm("Mi promedio", Ui.Nota(r.MiPromedio), "bi-graph-up", Ui.ClaseNota(r.MiPromedio))' />
+    <partial name="_Stat" model='new StatVm("Promedio del grupo", Ui.Nota(r.PromedioGrupo), "bi-people")' />
+    <partial name="_Stat" model='new StatVm("Mi asistencia", Ui.Pct(r.MiAsistencia), "bi-calendar-check", Ui.ClasePct(r.MiAsistencia), asistidas + " de " + Model.Asistencias.Count + " clases")' />
+    <partial name="_Stat" model='new StatVm("Notas registradas", r.EvaluacionesCalificadas + " de " + r.EvaluacionesTotales, "bi-journal-check")' />
+</div>
+
+<div class="grid cols-wide">
+    <section class="panel">
+        <div class="panel-h"><h2>Evaluaciones</h2></div>
+        @if (Model.Evaluaciones.Count == 0)
+        {
+            <div class="empty"><i class="bi bi-journal"></i>Tu docente aún no ha creado evaluaciones.</div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="tabla">
+                    <thead><tr><th>Evaluación</th><th class="num">Vale</th><th class="num">Mi nota</th><th class="num">Grupo</th><th class="num">Diferencia</th></tr></thead>
+                    <tbody>
+                        @foreach (var e in Model.Evaluaciones)
+                        {
+                            var futura = e.Fecha.Date > DateTime.Today;
+                            <tr>
+                                <td><strong>@e.Titulo</strong><small class="d-block muted">@e.Tipo.Texto(), @Ui.Fecha(e.Fecha)</small></td>
+                                <td class="num">@e.Ponderacion.ToString("0.#")%</td>
+                                <td class="num">
+                                    @if (e.MiNota.HasValue) { <span class="nota @Ui.ClaseNota(e.MiNota)">@Ui.Nota(e.MiNota)</span> }
+                                    else { <span class="tag">@(futura ? "Próxima" : "Pendiente")</span> }
+                                </td>
+                                <td class="num">@Ui.Nota(e.PromedioGrupo)</td>
+                                <td class="num">
+                                    @if (e.MiNota.HasValue && e.PromedioGrupo.HasValue)
+                                    {
+                                        var dif = e.MiNota.Value - e.PromedioGrupo.Value;
+                                        <span class="nota @(dif >= 0 ? "bien" : "mal")">@(dif >= 0 ? "+" : "")@dif.ToString("0.0")</span>
+                                    }
+                                    else { <span class="muted">—</span> }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+    <div>
+        <section class="panel mb-3">
+            <div class="panel-h"><h2>Mi asistencia</h2></div>
+            <div class="panel-b">
+                @if (Model.Asistencias.Count == 0) { <p class="muted mb-0">Todavía no hay clases registradas.</p> }
+                else
+                {
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var a in Model.Asistencias)
+                        {
+                            <span class="as-pill @Ui.ClaseAsistencia(a.Estado)" title="@a.Estado.Texto()">@Ui.FechaCorta(a.Fecha), @a.Estado.Texto()</span>
+                        }
+                    </div>
+                }
+            </div>
+        </section>
+        <section class="panel">
+            <div class="panel-h"><h2>Recomendaciones</h2></div>
+            <div class="panel-b">
+                @if (Model.Sugerencias.Count == 0) { <p class="muted mb-0">Aparecerán cuando haya notas y asistencia registradas.</p> }
+                @foreach (var s in Model.Sugerencias)
+                {
+                    <div class="sugerencia @s.Prioridad.ToLowerInvariant()"><strong>@s.Titulo</strong><p>@s.Descripcion</p></div>
+                }
+            </div>
+        </section>
+    </div>
+</div>

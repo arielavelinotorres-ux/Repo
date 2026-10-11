@@ -1,0 +1,19 @@
+@model CursoEstudianteDto
+<article class="curso-card" style="--tono:@Ui.TonoColor(Model.MiPromedio)">
+    <div>
+        <span class="codigo">@Model.Codigo</span>
+        <h3><a asp-controller="Cursos" asp-action="Detalle" asp-route-id="@Model.CursoId" class="text-decoration-none" style="color:var(--ink)">@Model.Nombre</a></h3>
+        <small class="muted">@Model.Docente</small>
+    </div>
+    <dl>
+        <div><dt>Mi promedio</dt><dd class="nota @Ui.ClaseNota(Model.MiPromedio)">@Ui.Nota(Model.MiPromedio)</dd></div>
+        <div><dt>Promedio del grupo</dt><dd>@Ui.Nota(Model.PromedioGrupo)</dd></div>
+        <div><dt>Mi asistencia</dt><dd class="nota @Ui.ClasePct(Model.MiAsistencia)">@Ui.Pct(Model.MiAsistencia)</dd></div>
+        <div><dt>Evaluaciones</dt><dd>@Model.EvaluacionesCalificadas de @Model.EvaluacionesTotales</dd></div>
+    </dl>
+    <div class="barra" title="Mi promedio"><span class="@Ui.ClaseNota(Model.MiPromedio)" style="width:@((int)(Model.MiPromedio ?? 0))%"></span></div>
+    <div class="acciones">
+        <partial name="_Nivel" model="Model.Nivel" />
+        <a asp-controller="Cursos" asp-action="Detalle" asp-route-id="@Model.CursoId" class="btn btn-outline-secondary btn-sm ms-auto">Ver detalle</a>
+    </div>
+</article>

@@ -1,0 +1,80 @@
+@using System.Security.Claims
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var rolKey = User.IsInRole("Admin") ? "admin" : User.IsInRole("Docente") ? "docente" : "estudiante";
+    var area = rolKey == "admin" ? "Admin" : rolKey == "docente" ? "Docente" : "Estudiante";
+    var rolTexto = rolKey == "admin" ? "Administración" : rolKey == "docente" ? "Docente" : "Estudiante";
+    var items = rolKey switch
+    {
+        "admin" => new[] { ("Resumen", "bi-grid-1x2", "Panel"), ("Usuarios", "bi-people", "Usuarios"), ("Cursos", "bi-journal-bookmark", "Cursos"), ("Riesgo académico", "bi-exclamation-triangle", "Riesgo") },
+        "docente" => new[] { ("Mi resumen", "bi-grid-1x2", "Panel"), ("Mis cursos", "bi-journal-bookmark", "Cursos"), ("Alumnos en riesgo", "bi-exclamation-triangle", "Riesgo") },
+        _ => new[] { ("Mi balance", "bi-grid-1x2", "Panel"), ("Mis cursos", "bi-journal-bookmark", "Cursos") }
+    };
+    var ctrlActual = (string?)ViewContext.RouteData.Values["controller"] ?? "";
+    var areaActual = (string?)ViewContext.RouteData.Values["area"] ?? "";
+    var nombre = User.FindFirstValue("nombre") ?? "";
+    var primerNombre = nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+    var titulo = ViewData["Title"] as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+    <title>@titulo — HomeClass</title>
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <script>try { var t = localStorage.getItem('homeclass-tema'); if (t) document.documentElement.setAttribute('data-bs-theme', t); } catch (e) { }</script>
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body data-rol="@rolKey">
+    <div class="sidebar-overlay"></div>
+    <aside class="sidebar" aria-label="Navegación principal">
+        <a class="brand" asp-area="" asp-controller="Home" asp-action="Index">
+            <span class="brand-mark"><i class="bi bi-house-heart-fill"></i></span>
+            <span><span class="brand-name">HomeClass</span><br /><span class="brand-sub">Entorno Académico</span></span>
+        </a>
+        <nav class="nav-side">
+            @foreach (var (texto, icono, ctrl) in items)
+            {
+                <a asp-area="@area" asp-controller="@ctrl" asp-action="Index"
+                   class="@(areaActual == area && ctrlActual == ctrl ? "active" : "")"><i class="bi @icono"></i>@texto</a>
+            }
+        </nav>
+        <div class="sidebar-foot">
+            <a class="@(ctrlActual == "Cuenta" ? "active" : "")" asp-area="" asp-controller="Cuenta" asp-action="Perfil">
+                <i class="bi bi-person-circle"></i>Mi perfil
+            </a>
+            <form asp-area="" asp-controller="Cuenta" asp-action="Salir" method="post" class="nav-side">
+                <button type="submit"><i class="bi bi-box-arrow-left"></i>Cerrar sesión</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="topbar">
+            <button type="button" class="icon-btn d-lg-none" data-sidebar-toggle aria-label="Abrir menú"><i class="bi bi-list fs-5"></i></button>
+            <span class="fecha">@DateTime.Today.ToString("dddd d 'de' MMMM")</span>
+            <span class="ms-auto"></span>
+            <button type="button" id="tema-toggle" class="icon-btn" aria-label="Cambiar entre tema claro y oscuro"><i class="bi bi-moon-stars"></i></button>
+            <a class="user-chip text-decoration-none" style="color:var(--ink)" asp-area="" asp-controller="Cuenta" asp-action="Perfil">
+                <span class="avatar">@Ui.Iniciales(nombre)</span>
+                <span class="d-none d-sm-inline">@primerNombre</span>
+                <span class="rol-pill d-none d-md-inline">@rolTexto</span>
+            </a>
+        </header>
+        <main class="content">
+            @RenderBody()
+        </main>
+    </div>
+
+    <partial name="_Toasts" />
+    <partial name="_ConfirmModal" />
+    <script src="~/lib/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/chartjs/chart.umd.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

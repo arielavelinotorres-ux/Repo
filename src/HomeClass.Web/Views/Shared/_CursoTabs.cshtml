@@ -1,0 +1,14 @@
+@model CursoCabeceraVm
+<div class="page-head">
+    <div>
+        <a asp-action="Index" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Mis cursos</a>
+        <h1>@Model.Nombre</h1>
+        <p>@Model.Codigo</p>
+    </div>
+</div>
+<nav class="tabs-curso" aria-label="Secciones del curso">
+    <a asp-action="Detalle" asp-route-id="@Model.Id" class="@(Model.Tab == "resumen" ? "on" : "")"><i class="bi bi-people"></i> Estudiantes</a>
+    <a asp-action="Calificaciones" asp-route-id="@Model.Id" class="@(Model.Tab == "notas" ? "on" : "")"><i class="bi bi-journal-check"></i> Calificaciones</a>
+    <a asp-action="Asistencia" asp-route-id="@Model.Id" class="@(Model.Tab == "asistencia" ? "on" : "")"><i class="bi bi-calendar-check"></i> Asistencia</a>
+    <a asp-action="Matricula" asp-route-id="@Model.Id" class="@(Model.Tab == "matricula" ? "on" : "")"><i class="bi bi-person-plus"></i> Matrícula</a>
+</nav>

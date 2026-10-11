@@ -1,0 +1,58 @@
+@model CursoDetalleDto
+@{
+    ViewData["Title"] = Model.Nombre;
+    var r = Model.Riesgo;
+}
+<partial name="_CursoTabs" model='new CursoCabeceraVm(Model.Id, Model.Codigo, Model.Nombre, "resumen")' />
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+    <p class="mb-0 muted" style="max-width:70ch">@(string.IsNullOrWhiteSpace(Model.Descripcion) ? "Este curso aún no tiene descripción." : Model.Descripcion)</p>
+    <div class="actions">
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Editar curso</a>
+        <form asp-action="Eliminar" asp-route-id="@Model.Id" method="post" class="d-inline"
+              data-confirm="Se eliminará @Model.Nombre con sus evaluaciones, notas y asistencias. Esta acción no se puede deshacer."
+              data-confirm-titulo="Eliminar curso" data-confirm-boton="Eliminar">
+            <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-trash"></i> Eliminar</button>
+        </form>
+    </div>
+</div>
+
+<div class="stat-strip" style="--cols:5">
+    <partial name="_Stat" model='new StatVm("Estudiantes", Model.Alumnos.Count.ToString(), "bi-people")' />
+    <partial name="_Stat" model='new StatVm("Promedio del curso", Ui.Nota(Model.Promedio), "bi-graph-up", Ui.ClaseNota(Model.Promedio))' />
+    <partial name="_Stat" model='new StatVm("Asistencia", Ui.Pct(Model.Asistencia), "bi-calendar-check", Ui.ClasePct(Model.Asistencia))' />
+    <partial name="_Stat" model='new StatVm("Evaluaciones", Model.TotalEvaluaciones.ToString(), "bi-journal-check")' />
+    <partial name="_Stat" model='new StatVm("En riesgo", (r.Alto + r.Moderado).ToString(), "bi-exclamation-triangle", r.Alto > 0 ? "mal" : r.Moderado > 0 ? "medio" : "bien", r.Alto + " con riesgo alto")' />
+</div>
+
+<div class="panel" data-filtrable>
+    <div class="filtros">
+        <div class="buscador"><i class="bi bi-search"></i><input type="search" class="form-control" data-buscar placeholder="Buscar estudiante" aria-label="Buscar estudiante" /></div>
+        <a asp-action="Matricula" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm ms-auto"><i class="bi bi-person-plus"></i> Gestionar matrícula</a>
+    </div>
+    @if (Model.Alumnos.Count == 0)
+    {
+        <div class="empty"><i class="bi bi-people"></i><strong>Este curso no tiene estudiantes</strong>Matricula a tus estudiantes para calificar y pasar lista.
+            <div class="mt-3"><a asp-action="Matricula" asp-route-id="@Model.Id" class="btn btn-primary">Matricular estudiantes</a></div></div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="tabla">
+                <thead><tr><th data-sort="text">Estudiante</th><th class="num" data-sort="num">Promedio</th><th class="num" data-sort="num">Asistencia</th><th>Nivel</th></tr></thead>
+                <tbody>
+                    @foreach (var a in Model.Alumnos)
+                    {
+                        <tr data-fila data-texto="@a.Nombre @a.Carnet">
+                            <td><div class="celda-persona"><span class="avatar">@Ui.Iniciales(a.Nombre)</span><div><strong>@a.Nombre</strong><small>@a.Carnet</small></div></div></td>
+                            <td class="num" data-valor="@(a.Promedio ?? -1)"><span class="nota @Ui.ClaseNota(a.Promedio)">@Ui.Nota(a.Promedio)</span></td>
+                            <td class="num" data-valor="@(a.Asistencia ?? -1)"><span class="nota @Ui.ClasePct(a.Asistencia)">@Ui.Pct(a.Asistencia)</span></td>
+                            <td><partial name="_Nivel" model="a.Nivel" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="empty" data-vacio hidden><i class="bi bi-search"></i><strong>No hay resultados</strong>Prueba con otro nombre.</div>
+    }
+</div>
